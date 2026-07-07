@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kim Bu? - Futbol Efsaneleri</title>
+    <style>
+        body {
+            background-color: #12291c;
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 100px);
+            color: #ecf0f1;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #f1c40f;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+        }
+        .setup-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            margin: 5px;
+            background-color: #ecf0f1;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            background-color: #e67e22;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+            background-color: #d35400;
+        }
+        #loading {
+            display: none;
+            font-size: 18px;
+            color: #f1c40f;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #2c3e50;
+            border: 3px solid #bdc3c7;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            aspect-ratio: 3/4;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            border-color: #f1c40f;
+            transform: translateY(-5px);
+        }
+        .card.eliminated {
+            opacity: 0.3;
+            filter: grayscale(100%);
+            transform: scale(0.95);
+            border-color: #c0392b;
+        }
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            flex-grow: 1;
+        }
+        .card .name {
+            background-color: #000;
+            padding: 10px 5px;
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        @media (max-width: 900px) { .board { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 600px) { .board { grid-template-columns: repeat(3, 1fr); } }
+    </style>
+</head>
+<body>
+
+    <h1>Kim Bu? ⚽</h1>
+
+    <div class="setup-box">
+        <select id="kategoriSec">
+            <option value="turk_efsaneler">Türk Efsaneler</option>
+            <option value="dunya_efsaneler">Dünya Efsaneler</option>
+            <option value="super_lig">Süper Lig</option>
+            <option value="dunya_geneli">Dünya Geneli</option>
+            <option value="karma">Karma (Hepsi)</option>
+        </select>
+        <button onclick="oyunuBaslat()">Odayı Kur (20 Rastgele Kart)</button>
+    </div>
+
+    <div id="loading">Sahaya iniliyor, kadrolar çekiliyor... ⏳</div>
+    <div class="board" id="oyunTahtasi"></div>
+
+    <script>
+        // ==========================================
+        // BURAYI KENDİ GITHUB BİLGİLERİNLE DOLDUR
+        // ==========================================
+        const GITHUB_KULLANICI_ADIN = "kullanici_adini_yaz"; 
+        const GITHUB_REPO_ADIN = "repo_adini_yaz";
+        // ==========================================
+
+        const klasorler = ["turk_efsaneler", "dunya_efsaneler", "super_lig", "dunya_geneli"];
+
+        function ismiDuzenle(dosyaAdi) {
+            let isim = dosyaAdi.replace(/\.[^/.]+$/, ""); 
+            isim = isim.replace(/_/g, " "); 
+            return isim.replace(/\b\w/g, l => l.toUpperCase()); 
+        }
+
+        async function githubdanResimleriCek(klasor) {
+            const url = `https://api.github.com/repos/${GITHUB_KULLANICI_ADIN}/${GITHUB_REPO_ADIN}/contents/images/${klasor}`;
+            try {
+                const yanit = await fetch(url);
+                if (!yanit.ok) return [];
+                const veri = await yanit.json();
+                return veri
+                    .filter(dosya => dosya.name.match(/\.(jpg|jpeg|png|webp)$/i))
+                    .map(dosya => ({
+                        isim: ismiDuzenle(dosya.name),
+                        img: dosya.download_url
+                    }));
+            } catch (hata) {
+                console.error("Resimler çekilemedi:", hata);
+                return [];
+            }
+        }
+
+        function diziyiKaristir(dizi) {
+            let kopya = [...dizi];
+            for (let i = kopya.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [kopya[i], kopya[j]] = [kopya[j], kopya[i]];
+            }
+            return kopya;
+        }
+
+        async function oyunuBaslat() {
+            if(GITHUB_KULLANICI_ADIN === "kullanici_adini_yaz") {
+                alert("Önce kodun içindeki Github kullanıcı adını ve repo adını düzeltmelisin bro!");
+                return;
+            }
+
+            const secilenKategori = document.getElementById("kategoriSec").value;
+            const loading = document.getElementById("loading");
+            const tahta = document.getElementById("oyunTahtasi");
+
+            tahta.innerHTML = "";
+            loading.style.display = "block";
+            let tumOyuncular = [];
+
+            if (secilenKategori === "karma") {
+                for (let k of klasorler) {
+                    let adamlar = await githubdanResimleriCek(k);
+                    tumOyuncular = tumOyuncular.concat(adamlar);
+                }
+            } else {
+                tumOyuncular = await githubdanResimleriCek(secilenKategori);
+            }
+
+            loading.style.display = "none";
+
+            if (tumOyuncular.length === 0) {
+                tahta.innerHTML = `<h3 style="color:red; grid-column: 1 / -1;">Bu kategoride resim yok! Github'da 'images/${secilenKategori}' klasörüne resim yüklediğinden emin ol.</h3>`;
+                return;
+            }
+
+            const oynanacakKadro = diziyiKaristir(tumOyuncular).slice(0, 20);
+
+            oynanacakKadro.forEach(oyuncu => {
+                const kart = document.createElement("div");
+                kart.className = "card";
+                kart.onclick = function() { this.classList.toggle("eliminated"); };
+                kart.innerHTML = `
+                    <img src="${oyuncu.img}" alt="${oyuncu.isim}">
+                    <div class="name">${oyuncu.isim}</div>
+                `;
+                tahta.appendChild(kart);
+            });
+        }
+    </script>
+</body>
+</html>
