@@ -1,139 +1,287 @@
-<!DOCTYPE html>
+html_code = """<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kim Bu? - Futbol Efsaneleri</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        * { box-sizing: border-box; }
         body {
-            background-color: #12291c;
-            background-image: repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 100px);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: #ecf0f1;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
         }
         h1 {
             text-transform: uppercase;
             letter-spacing: 2px;
             color: #f1c40f;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+            margin-bottom: 10px;
         }
-        .setup-box {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 20px;
-            border-radius: 12px;
+        .subtitle {
+            font-size: 14px;
+            color: #bdc3c7;
+            margin-bottom: 30px;
+        }
+        
+        /* Menü Ekranları */
+        .screen { display: none; }
+        .screen.active { display: block; }
+        
+        .menu-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 15px;
             display: inline-block;
-            margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
         }
-        select {
-            padding: 10px;
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
             font-size: 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             border: none;
-            margin: 5px;
+            margin: 10px 0;
             background-color: #ecf0f1;
-            font-weight: bold;
             color: #2c3e50;
-            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
         }
+        
         button {
-            padding: 10px 20px;
+            width: 100%;
+            padding: 12px;
             font-size: 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             border: none;
-            background-color: #e67e22;
+            background-color: #27ae60;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
+            margin-top: 10px;
+            transition: 0.2s;
         }
-        button:hover {
-            transform: scale(1.05);
-            background-color: #d35400;
-        }
-        #loading {
-            display: none;
-            font-size: 18px;
+        button:hover { background-color: #2ecc71; transform: scale(1.02); }
+        button.btn-secondary { background-color: #2980b9; }
+        button.btn-secondary:hover { background-color: #3498db; }
+        button.btn-danger { background-color: #c0392b; margin-top: 20px; }
+        button.btn-danger:hover { background-color: #e74c3c; }
+
+        #roomCodeDisplay {
+            font-size: 32px;
             color: #f1c40f;
+            letter-spacing: 5px;
             margin: 20px 0;
-            font-weight: bold;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 10px;
         }
+
+        /* Oyun Tahtası */
+        #gameStatus {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ffcc;
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #00ffcc;
+        }
+
         .board {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 15px;
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
+        
         .card {
             background-color: #2c3e50;
-            border: 3px solid #bdc3c7;
-            border-radius: 8px;
+            border: 2px solid #34495e;
+            border-radius: 10px;
             overflow: hidden;
             cursor: pointer;
             transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: relative;
             aspect-ratio: 3/4;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
-        .card:hover {
-            border-color: #f1c40f;
-            transform: translateY(-5px);
-        }
-        .card.eliminated {
-            opacity: 0.3;
-            filter: grayscale(100%);
-            transform: scale(0.95);
-            border-color: #c0392b;
-        }
+        
         .card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            flex-grow: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
+        
         .card .name {
-            background-color: #000;
-            padding: 10px 5px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%);
+            color: white;
+            padding: 20px 5px 8px 5px;
             font-size: 15px;
             font-weight: bold;
             text-transform: uppercase;
+            z-index: 2;
+            text-align: center;
         }
+
+        /* Kart Durumları */
+        .card.my-player {
+            border: 4px solid #00ffcc;
+            box-shadow: 0 0 20px #00ffcc;
+            transform: scale(1.02);
+        }
+        
+        .card.eliminated {
+            opacity: 0.25;
+            filter: grayscale(100%);
+            transform: scale(0.95);
+            border-color: #c0392b;
+        }
+        .card.eliminated .name { text-decoration: line-through; color: #e74c3c; }
+
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            flex-direction: column;
+        }
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #f1c40f;
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         @media (max-width: 900px) { .board { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 600px) { .board { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px) { 
+            .board { grid-template-columns: repeat(3, 1fr); gap: 10px; } 
+            .card .name { font-size: 12px; padding: 15px 3px 5px 3px; }
+            #gameStatus { font-size: 16px; padding: 10px; }
+        }
+        @media (max-width: 400px) { .board { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
     <h1>Kim Bu? ⚽</h1>
+    <div class="subtitle">Çevrimiçi Futbolcu Tahmin Oyunu</div>
 
-    <div class="setup-box">
-        <select id="kategoriSec">
-            <option value="turk_efsaneler">Türk Efsaneler</option>
-            <option value="dunya_efsaneler">Dünya Efsaneler</option>
-            <option value="super_lig">Süper Lig</option>
-            <option value="dunya_geneli">Dünya Geneli</option>
-            <option value="karma">Karma (Hepsi)</option>
-        </select>
-        <button onclick="oyunuBaslat()">Odayı Kur (20 Rastgele Kart)</button>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <span id="loadingText">Bekleniyor...</span>
     </div>
 
-    <div id="loading">Sahaya iniliyor, kadrolar çekiliyor... ⏳</div>
-    <div class="board" id="oyunTahtasi"></div>
+    <!-- ANA MENÜ -->
+    <div id="screen-main" class="screen active">
+        <div class="menu-box">
+            <h2>Oyun Modu Seç</h2>
+            <button onclick="showScreen('screen-host')">🏠 Yeni Oda Kur</button>
+            <button class="btn-secondary" onclick="showScreen('screen-join')">🤝 Kodla Odaya Katıl</button>
+        </div>
+    </div>
+
+    <!-- ODA KURMA EKRANI -->
+    <div id="screen-host" class="screen">
+        <div class="menu-box">
+            <h2>Oda Ayarları</h2>
+            <select id="kategoriSec">
+                <option value="super_lig">Süper Lig</option>
+                <option value="turk_efsaneler">Türk Efsaneler</option>
+                <option value="dunya_efsaneler">Dünya Efsaneler</option>
+                <option value="dunya_geneli">Dünya Geneli</option>
+            </select>
+            <button onclick="odaOlustur()">Odayı Başlat</button>
+            <button class="btn-danger" onclick="showScreen('screen-main')">Geri Dön</button>
+        </div>
+    </div>
+
+    <!-- KODLA KATILMA EKRANI -->
+    <div id="screen-join" class="screen">
+        <div class="menu-box">
+            <h2>Odaya Katıl</h2>
+            <input type="text" id="joinCode" placeholder="Oda Kodunu Gir (Örn: A7X9B)" maxlength="5" style="text-transform: uppercase;">
+            <button class="btn-secondary" onclick="odayaKatil()">Bağlan</button>
+            <button class="btn-danger" onclick="showScreen('screen-main')">Geri Dön</button>
+        </div>
+    </div>
+
+    <!-- BEKLEME EKRANI (HOST İÇİN) -->
+    <div id="screen-waiting" class="screen">
+        <div class="menu-box">
+            <h2>Oda Kuruldu!</h2>
+            <p>Arkadaşına şu kodu gönder:</p>
+            <div id="roomCodeDisplay">-----</div>
+            <p style="color: #f1c40f;">Arkadaşın kodu girdiğinde oyun otomatik başlayacak...</p>
+            <div class="spinner" style="margin: 20px auto;"></div>
+        </div>
+    </div>
+
+    <!-- OYUN TAHTASI -->
+    <div id="screen-game" class="screen">
+        <div id="gameStatus">SENİN OYUNCUN KİM? <br><span style="font-size:14px;color:#bdc3c7;">Önce kendi karakterini seçerek çerçeveye al.</span></div>
+        <div class="board" id="oyunTahtasi"></div>
+    </div>
 
     <script>
-        // ==========================================
-        // BURAYI KENDİ GITHUB BİLGİLERİNLE DOLDUR
-        // ==========================================
-        const GITHUB_KULLANICI_ADIN = "MoSalah11-cyber"; 
+        // --- SENİN BİLGİLERİN (Görselden aldığım repo adı) ---
+        const GITHUB_KULLANICI_ADIN = "mosalah11-cyber"; 
         const GITHUB_REPO_ADIN = "kim-bu-futbol";
-        // ==========================================
+        
+        let peer = null;
+        let conn = null;
+        let myPlayerId = null;
+        let gameState = "SELECT_PLAYER"; // SELECT_PLAYER veya PLAYING
 
-        const klasorler = ["turk_efsaneler", "dunya_efsaneler", "super_lig", "dunya_geneli"];
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text;
+            document.getElementById('loadingOverlay').style.display = "flex";
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = "none";
+        }
+
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Karışabilen O,0,1,I yok
+            let code = '';
+            for(let i=0; i<5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+            return code;
+        }
 
         function ismiDuzenle(dosyaAdi) {
             let isim = dosyaAdi.replace(/\.[^/.]+$/, ""); 
@@ -151,7 +299,8 @@
                     .filter(dosya => dosya.name.match(/\.(jpg|jpeg|png|webp)$/i))
                     .map(dosya => ({
                         isim: ismiDuzenle(dosya.name),
-                        img: dosya.download_url
+                        img: dosya.download_url,
+                        id: Math.random().toString(36).substr(2, 9)
                     }));
             } catch (hata) {
                 console.error("Resimler çekilemedi:", hata);
@@ -168,49 +317,136 @@
             return kopya;
         }
 
-        async function oyunuBaslat() {
-            if(GITHUB_KULLANICI_ADIN === "kullanici_adini_yaz") {
-                alert("Önce kodun içindeki Github kullanıcı adını ve repo adını düzeltmelisin bro!");
-                return;
-            }
-
+        // ==========================================
+        // HOST (ODA KURAN) İŞLEMLERİ
+        // ==========================================
+        async function odaOlustur() {
             const secilenKategori = document.getElementById("kategoriSec").value;
-            const loading = document.getElementById("loading");
-            const tahta = document.getElementById("oyunTahtasi");
-
-            tahta.innerHTML = "";
-            loading.style.display = "block";
-            let tumOyuncular = [];
-
-            if (secilenKategori === "karma") {
-                for (let k of klasorler) {
-                    let adamlar = await githubdanResimleriCek(k);
-                    tumOyuncular = tumOyuncular.concat(adamlar);
-                }
-            } else {
-                tumOyuncular = await githubdanResimleriCek(secilenKategori);
-            }
-
-            loading.style.display = "none";
-
+            const roomCode = generateRoomCode();
+            
+            showLoading("Kadro çekiliyor...");
+            let tumOyuncular = await githubdanResimleriCek(secilenKategori);
+            
             if (tumOyuncular.length === 0) {
-                tahta.innerHTML = `<h3 style="color:red; grid-column: 1 / -1;">Bu kategoride resim yok! Github'da 'images/${secilenKategori}' klasörüne resim yüklediğinden emin ol.</h3>`;
+                hideLoading();
+                alert(`Hata: ${secilenKategori} klasöründe resim bulunamadı!`);
                 return;
             }
 
             const oynanacakKadro = diziyiKaristir(tumOyuncular).slice(0, 20);
+            
+            // PeerJS Sunucusuna Bağlan
+            showLoading("Oda sunucusu açılıyor...");
+            peer = new Peer('kbfutbol-' + roomCode); // Koda özel ID
+            
+            peer.on('open', function(id) {
+                hideLoading();
+                showScreen('screen-waiting');
+                document.getElementById('roomCodeDisplay').innerText = roomCode;
+            });
 
-            oynanacakKadro.forEach(oyuncu => {
+            peer.on('connection', function(connection) {
+                conn = connection;
+                conn.on('open', function() {
+                    // Arkadaş bağlandı, aynı kadroyu ona gönder!
+                    conn.send({ type: 'KADRO', payload: oynanacakKadro });
+                    tahtayiCiz(oynanacakKadro);
+                });
+            });
+
+            peer.on('error', function(err) {
+                hideLoading();
+                alert("Bağlantı hatası: " + err.type);
+            });
+        }
+
+        // ==========================================
+        // GUEST (KATILAN) İŞLEMLERİ
+        // ==========================================
+        function odayaKatil() {
+            let code = document.getElementById("joinCode").value.toUpperCase().trim();
+            if(code.length !== 5) {
+                alert("Lütfen 5 haneli oda kodunu eksiksiz girin.");
+                return;
+            }
+
+            showLoading("Odaya bağlanıyor...");
+            peer = new Peer(); 
+            
+            peer.on('open', function(id) {
+                conn = peer.connect('kbfutbol-' + code);
+                
+                conn.on('open', function() {
+                    hideLoading();
+                    // Bağlandık, veriyi bekliyoruz
+                });
+
+                conn.on('data', function(data) {
+                    if(data.type === 'KADRO') {
+                        tahtayiCiz(data.payload);
+                    }
+                });
+            });
+
+            peer.on('error', function(err) {
+                hideLoading();
+                alert("Oda bulunamadı veya bağlantı hatası!");
+            });
+        }
+
+        // ==========================================
+        // OYUN İÇİ İŞLEMLER
+        // ==========================================
+        function tahtayiCiz(kadro) {
+            showScreen('screen-game');
+            const tahta = document.getElementById("oyunTahtasi");
+            tahta.innerHTML = "";
+            gameState = "SELECT_PLAYER";
+            myPlayerId = null;
+            document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:14px;color:#bdc3c7;'>Önce kendi karakterini seçerek belirle.</span>";
+
+            kadro.forEach(oyuncu => {
                 const kart = document.createElement("div");
                 kart.className = "card";
-                kart.onclick = function() { this.classList.toggle("eliminated"); };
+                kart.id = "kart-" + oyuncu.id;
+                
                 kart.innerHTML = `
                     <img src="${oyuncu.img}" alt="${oyuncu.isim}">
                     <div class="name">${oyuncu.isim}</div>
                 `;
+                
+                kart.onclick = () => kartTiklandi(kart);
                 tahta.appendChild(kart);
             });
+        }
+
+        function kartTiklandi(kart) {
+            // Aşama 1: Kendi oyuncunu seçme
+            if(gameState === "SELECT_PLAYER") {
+                kart.classList.add("my-player");
+                myPlayerId = kart.id;
+                gameState = "PLAYING";
+                
+                const status = document.getElementById("gameStatus");
+                status.style.color = "#f1c40f";
+                status.style.borderColor = "#f1c40f";
+                status.innerHTML = "OYUN BAŞLADI! 🎮<br><span style='font-size:14px;color:#bdc3c7;'>Rakibine sorular sor, elenenleri kapat.</span>";
+                return;
+            }
+
+            // Aşama 2: Oyun oynanırken eleme yapma
+            if(gameState === "PLAYING") {
+                // Kendi seçtiği adamı yanlışlıkla elemesin
+                if(kart.id === myPlayerId) return;
+                
+                kart.classList.toggle("eliminated");
+            }
         }
     </script>
 </body>
 </html>
+"""
+
+with open("kim-bu-futbol-v2.html", "w", encoding="utf-8") as f:
+    f.write(html_code)
+print("File generated successfully.")
