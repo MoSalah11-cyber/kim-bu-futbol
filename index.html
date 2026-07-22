@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kim Bu? - Futbol Efsaneleri</title>
+    <title>Kim Bu? - Futbol</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body {
@@ -16,20 +17,31 @@
             padding: 20px;
             min-height: 100vh;
         }
+        
         h1 {
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-family: 'VT323', monospace;
+            font-size: 60px;
             color: #f1c40f;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
-            margin-bottom: 10px;
+            text-shadow: 4px 4px 0px rgba(0,0,0,0.8);
+            margin-bottom: 5px;
+            line-height: 1;
+            letter-spacing: 2px;
         }
+        .main-title-sub {
+            font-family: 'VT323', monospace;
+            font-size: 40px;
+            display: block;
+            color: #ecf0f1;
+            letter-spacing: 5px;
+        }
+
         .subtitle {
             font-size: 14px;
             color: #bdc3c7;
             margin-bottom: 30px;
+            margin-top: 10px;
         }
         
-        /* Menü Ekranları */
         .screen { display: none; }
         .screen.active { display: block; }
         
@@ -86,7 +98,6 @@
             border-radius: 10px;
         }
 
-        /* Oyun Tahtası ve Üst Bar */
         #oyunUstBar {
             display: flex;
             justify-content: space-between;
@@ -99,14 +110,31 @@
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         #gameStatus {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #00ffcc;
             text-align: left;
+            flex-grow: 1;
         }
+
+        #scoreboard {
+            background: #2c3e50;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 22px;
+            font-weight: 900;
+            color: #ecf0f1;
+            border: 2px solid #34495e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .score-num { color: #f1c40f; }
 
         #btnTahmin {
             background-color: #2ecc71;
@@ -118,9 +146,20 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
             font-size: 18px;
-            display: none; /* Oyun başlayana kadar gizli */
+            display: none;
         }
-        #btnTahmin:hover { transform: scale(1.05); }
+        
+        #btnYeniMac {
+            background-color: #9b59b6;
+            color: white;
+            font-weight: 900;
+            padding: 10px 20px;
+            width: auto;
+            margin: 0;
+            border-radius: 8px;
+            font-size: 18px;
+            display: none;
+        }
 
         .board {
             display: grid;
@@ -170,7 +209,6 @@
             text-align: center;
         }
 
-        /* Kart Durumları */
         .card.my-player {
             border: 4px solid #00ffcc;
             box-shadow: 0 0 20px #00ffcc;
@@ -185,20 +223,22 @@
         }
         .card.eliminated .name { text-decoration: line-through; color: #e74c3c; }
 
-        #loadingOverlay {
+        #loadingOverlay, #opponentGuessingOverlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             color: white;
             z-index: 999;
             justify-content: center;
             align-items: center;
             font-size: 24px;
             flex-direction: column;
+            backdrop-filter: blur(5px);
         }
+        
+        #opponentGuessingOverlay { font-size: 30px; font-weight: bold; color: #f1c40f; text-shadow: 2px 2px 10px rgba(0,0,0,1); }
 
-        /* TAHMİN SONUCU EKRANI */
         #resultOverlay {
             display: none;
             position: fixed;
@@ -207,11 +247,13 @@
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 60px;
+            font-size: 50px;
             font-weight: bold;
             text-shadow: 4px 4px 15px rgba(0,0,0,0.9);
             pointer-events: none;
             backdrop-filter: blur(5px);
+            text-align: center;
+            padding: 20px;
         }
 
         .spinner {
@@ -224,7 +266,6 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* SOHBET KUTUSU TASARIMI */
         #chat-container {
             margin: 20px auto 0 auto;
             max-width: 1200px;
@@ -266,18 +307,20 @@
 
         @media (max-width: 900px) { .board { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 600px) { 
+            h1 { font-size: 45px; } .main-title-sub { font-size: 30px; }
             .board { grid-template-columns: repeat(3, 1fr); gap: 10px; } 
             .card .name { font-size: 12px; padding: 15px 3px 5px 3px; }
-            #gameStatus { font-size: 16px; }
-            #btnTahmin { font-size: 14px; padding: 8px 12px; }
-            #resultOverlay { font-size: 40px; }
+            #gameStatus { font-size: 14px; width: 100%; text-align: center; }
+            #scoreboard { font-size: 16px; width: 100%; justify-content: center; }
+            #btnTahmin, #btnYeniMac { font-size: 14px; padding: 8px 12px; flex-grow: 1; }
+            #resultOverlay { font-size: 35px; }
         }
         @media (max-width: 400px) { .board { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
-    <h1>Kim Bu? ⚽</h1>
+    <h1>BİL BAKALIM KİM?<br><span class="main-title-sub">FUTBOL</span></h1>
     <div class="subtitle">Çevrimiçi Futbolcu Tahmin Oyunu</div>
 
     <div id="loadingOverlay">
@@ -285,12 +328,15 @@
         <span id="loadingText">Bekleniyor...</span>
     </div>
 
-    <!-- TAHMİN SONUCU BİLDİRİMİ -->
+    <div id="opponentGuessingOverlay">
+        <div class="spinner" style="border-top-color: #e74c3c;"></div>
+        Rakip Tahmin Yapıyor...<br><span style="font-size:16px; font-weight:normal; color:#bdc3c7; margin-top:10px; display:block;">Nefesler tutuldu!</span>
+    </div>
+
     <div id="resultOverlay">
         <div id="resultText">KAZANDIN!</div>
     </div>
 
-    <!-- ANA MENÜ -->
     <div id="screen-main" class="screen active">
         <div class="menu-box">
             <h2>Oyun Modu Seç</h2>
@@ -299,10 +345,10 @@
         </div>
     </div>
 
-    <!-- ODA KURMA EKRANI -->
     <div id="screen-host" class="screen">
         <div class="menu-box">
             <h2>Oda Ayarları</h2>
+            <input type="text" id="hostNick" placeholder="Nickini Gir (Örn: Maestro)" maxlength="12">
             <select id="kategoriSec">
                 <option value="super_lig">Süper Lig</option>
                 <option value="turk_efsaneler">Türk Efsaneler</option>
@@ -314,17 +360,16 @@
         </div>
     </div>
 
-    <!-- KODLA KATILMA EKRANI -->
     <div id="screen-join" class="screen">
         <div class="menu-box">
             <h2>Odaya Katıl</h2>
+            <input type="text" id="joinNick" placeholder="Nickini Gir (Örn: Kral)" maxlength="12">
             <input type="text" id="joinCode" placeholder="Oda Kodunu Gir (Örn: A7X9B)" maxlength="5" style="text-transform: uppercase;">
             <button class="btn-secondary" onclick="odayaKatil()">Bağlan</button>
             <button class="btn-danger" onclick="showScreen('screen-main')">Geri Dön</button>
         </div>
     </div>
 
-    <!-- BEKLEME EKRANI (HOST İÇİN) -->
     <div id="screen-waiting" class="screen">
         <div class="menu-box">
             <h2>Oda Kuruldu!</h2>
@@ -335,16 +380,20 @@
         </div>
     </div>
 
-    <!-- OYUN TAHTASI VE SOHBET -->
     <div id="screen-game" class="screen">
         <div id="oyunUstBar">
-            <div id="gameStatus">SENİN OYUNCUN KİM? <br><span style="font-size:14px;color:#bdc3c7;">Önce kendi karakterini seçerek çerçeveye al.</span></div>
+            <div id="scoreboard">
+                <span id="ui-myNick">Sen</span> <span class="score-num" id="ui-myScore">0</span>
+                <span>-</span>
+                <span class="score-num" id="ui-oppScore">0</span> <span id="ui-oppNick">Rakip</span>
+            </div>
+            <div id="gameStatus">SENİN OYUNCUN KİM? <br><span style="font-size:13px;color:#bdc3c7;">Önce kendi karakterini seç.</span></div>
             <button id="btnTahmin" onclick="tahminModunuAcKapat()">TAHMİN ET</button>
+            <button id="btnYeniMac" onclick="yeniMacBaslat()">YENİ MAÇ</button>
         </div>
         
         <div class="board" id="oyunTahtasi"></div>
         
-        <!-- MESAJLAŞMA KUTUSU -->
         <div id="chat-container">
             <div id="chat-messages"></div>
             <div id="chat-input-area">
@@ -360,10 +409,20 @@
         
         let peer = null;
         let conn = null;
+        let isHost = false;
+        
+        let myNick = "Sen";
+        let opponentNick = "Rakip";
+        let myScore = 0;
+        let opponentScore = 0;
+
         let myPlayerId = null;
         let opponentPlayerId = null;
-        let gameState = "SELECT_PLAYER";
+        let gameState = "SELECT_PLAYER"; // SELECT_PLAYER, PLAYING, GAME_OVER
         let isGuessMode = false;
+        
+        let currentCategory = "";
+        let tumOyuncularCache = [];
 
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -420,23 +479,31 @@
             return kopya;
         }
 
-        // ==========================================
-        // HOST (ODA KURAN) İŞLEMLERİ
-        // ==========================================
+        function skorTablosunuGuncelle() {
+            document.getElementById('ui-myNick').innerText = myNick;
+            document.getElementById('ui-oppNick').innerText = opponentNick;
+            document.getElementById('ui-myScore').innerText = myScore;
+            document.getElementById('ui-oppScore').innerText = opponentScore;
+        }
+
         async function odaOlustur() {
-            const secilenKategori = document.getElementById("kategoriSec").value;
+            let nickInput = document.getElementById("hostNick").value.trim();
+            myNick = nickInput !== "" ? nickInput : "Oyuncu 1";
+            isHost = true;
+            
+            currentCategory = document.getElementById("kategoriSec").value;
             const roomCode = generateRoomCode();
             
             showLoading("Kadro çekiliyor...");
-            let tumOyuncular = await githubdanResimleriCek(secilenKategori);
+            tumOyuncularCache = await githubdanResimleriCek(currentCategory);
             
-            if (tumOyuncular.length === 0) {
+            if (tumOyuncularCache.length === 0) {
                 hideLoading();
-                alert(`Hata: ${secilenKategori} klasöründe resim bulunamadı!`);
+                alert(`Hata: ${currentCategory} klasöründe resim bulunamadı!`);
                 return;
             }
 
-            const oynanacakKadro = diziyiKaristir(tumOyuncular).slice(0, 20);
+            const oynanacakKadro = diziyiKaristir(tumOyuncularCache).slice(0, 20);
             
             showLoading("Oda sunucusu açılıyor...");
             peer = new Peer('kbfutbol-' + roomCode);
@@ -450,10 +517,11 @@
             peer.on('connection', function(connection) {
                 conn = connection;
                 conn.on('open', function() {
+                    conn.send({ type: 'NICKNAME', payload: myNick });
                     conn.send({ type: 'KADRO', payload: oynanacakKadro });
+                    skorTablosunuGuncelle();
                     tahtayiCiz(oynanacakKadro);
                 });
-                
                 conn.on('data', gelenVeriyiIsle);
             });
 
@@ -463,10 +531,11 @@
             });
         }
 
-        // ==========================================
-        // GUEST (KATILAN) İŞLEMLERİ
-        // ==========================================
         function odayaKatil() {
+            let nickInput = document.getElementById("joinNick").value.trim();
+            myNick = nickInput !== "" ? nickInput : "Oyuncu 2";
+            isHost = false;
+
             let code = document.getElementById("joinCode").value.toUpperCase().trim();
             if(code.length !== 5) {
                 alert("Lütfen 5 haneli oda kodunu eksiksiz girin.");
@@ -481,6 +550,8 @@
                 
                 conn.on('open', function() {
                     hideLoading();
+                    conn.send({ type: 'NICKNAME', payload: myNick });
+                    skorTablosunuGuncelle();
                 });
 
                 conn.on('data', gelenVeriyiIsle);
@@ -492,32 +563,36 @@
             });
         }
 
-        // ==========================================
-        // VERİ VE SOHBET İŞLEMLERİ
-        // ==========================================
         function gelenVeriyiIsle(data) {
             if(data.type === 'KADRO') {
                 tahtayiCiz(data.payload);
+            } else if(data.type === 'NICKNAME') {
+                opponentNick = data.payload;
+                skorTablosunuGuncelle();
             } else if(data.type === 'CHAT') {
-                mesajEkranaYazdir('Rakip', data.payload, 'msg-them');
+                mesajEkranaYazdir(opponentNick, data.payload, 'msg-them');
             } else if(data.type === 'SELECTION') {
                 opponentPlayerId = data.payload;
+            } else if(data.type === 'GUESS_START') {
+                document.getElementById('opponentGuessingOverlay').style.display = "flex";
+            } else if(data.type === 'GUESS_CANCEL') {
+                document.getElementById('opponentGuessingOverlay').style.display = "none";
+            } else if(data.type === 'GUESS_RESULT') {
+                document.getElementById('opponentGuessingOverlay').style.display = "none";
+                sonucIsle(data.payload, 'rakip');
             }
         }
 
         function chatEnterKontrol(e) {
-            if (e.key === 'Enter') {
-                mesajGonder();
-            }
+            if (e.key === 'Enter') mesajGonder();
         }
 
         function mesajGonder() {
             const input = document.getElementById('chat-input');
             const metin = input.value.trim();
-            
             if(!metin || !conn) return;
 
-            mesajEkranaYazdir('Sen', metin, 'msg-me');
+            mesajEkranaYazdir(myNick, metin, 'msg-me');
             conn.send({ type: 'CHAT', payload: metin });
             input.value = '';
         }
@@ -527,68 +602,103 @@
             const yeniMesaj = document.createElement('div');
             yeniMesaj.className = 'message ' + cssSinifi;
             yeniMesaj.innerHTML = `<strong>${gonderen}:</strong> ${metin}`;
-            
             mesajKutusu.appendChild(yeniMesaj);
             mesajKutusu.scrollTop = mesajKutusu.scrollHeight;
         }
 
-        // ==========================================
-        // OYUN TAHTASI VE TAHMİN İŞLEMLERİ
-        // ==========================================
         function tahtayiCiz(kadro) {
             showScreen('screen-game');
             const tahta = document.getElementById("oyunTahtasi");
             tahta.innerHTML = "";
+            
             gameState = "SELECT_PLAYER";
             myPlayerId = null;
             opponentPlayerId = null;
             isGuessMode = false;
             
             document.getElementById("btnTahmin").style.display = "none";
-            document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:14px;color:#bdc3c7;'>Önce kendi karakterini seçerek belirle.</span>";
-            document.getElementById('chat-messages').innerHTML = ""; 
-
+            document.getElementById("btnTahmin").style.backgroundColor = "#2ecc71";
+            document.getElementById("btnTahmin").innerText = "TAHMİN ET";
+            document.getElementById("btnYeniMac").style.display = "none";
+            document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:13px;color:#bdc3c7;'>Önce kendi karakterini seçerek belirle.</span>";
+            
             kadro.forEach(oyuncu => {
                 const kart = document.createElement("div");
                 kart.className = "card";
                 kart.id = "kart-" + oyuncu.id;
-                
-                kart.innerHTML = `
-                    <img src="${oyuncu.img}" alt="${oyuncu.isim}">
-                    <div class="name">${oyuncu.isim}</div>
-                `;
-                
+                kart.innerHTML = `<img src="${oyuncu.img}" alt="${oyuncu.isim}"><div class="name">${oyuncu.isim}</div>`;
                 kart.onclick = () => kartTiklandi(kart);
                 tahta.appendChild(kart);
             });
         }
 
-        function tahminModunuAcKapat() {
+        function yeniMacBaslat() {
+            if(!isHost) return;
+            const yeniKadro = diziyiKaristir(tumOyuncularCache).slice(0, 20);
+            conn.send({ type: 'KADRO', payload: yeniKadro });
+            tahtayiCiz(yeniKadro);
+        }
+
+        function tahminModunuAcKapat(islemBitti = false) {
             if(gameState !== "PLAYING") return;
             
-            isGuessMode = !isGuessMode;
+            if(islemBitti) {
+                isGuessMode = false;
+            } else {
+                isGuessMode = !isGuessMode;
+            }
+
             const btn = document.getElementById("btnTahmin");
             
             if(isGuessMode) {
-                btn.style.backgroundColor = "#e74c3c"; // İptal rengi (Kırmızı)
-                btn.style.color = "white";
+                btn.style.backgroundColor = "#e74c3c"; 
                 btn.innerText = "İPTAL ET";
+                if(conn) conn.send({ type: 'GUESS_START' });
             } else {
-                btn.style.backgroundColor = "#2ecc71"; // Normal renk (Yeşil)
-                btn.style.color = "black";
+                btn.style.backgroundColor = "#2ecc71"; 
                 btn.innerText = "TAHMİN ET";
+                if(!islemBitti && conn) conn.send({ type: 'GUESS_CANCEL' });
             }
         }
 
-        function sonucGoster(mesaj, renk) {
+        function ekrandaGoster(mesaj, renk) {
             const overlay = document.getElementById("resultOverlay");
-            document.getElementById("resultText").innerText = mesaj;
+            document.getElementById("resultText").innerHTML = mesaj;
             overlay.style.backgroundColor = renk;
             overlay.style.display = "flex";
             
             setTimeout(() => {
                 overlay.style.display = "none";
-            }, 2500);
+            }, 3000);
+        }
+
+        function sonucIsle(isCorrect, tahminEden) {
+            if(isCorrect) {
+                // DOĞRU BİLİNMİŞSE OYUN BİTER
+                gameState = "GAME_OVER"; 
+                document.getElementById("btnTahmin").style.display = "none";
+                document.getElementById("gameStatus").innerHTML = "MAÇ BİTTİ! <br><span style='font-size:13px;color:#bdc3c7;'>Rövanş bekleniyor...</span>";
+                
+                if(tahminEden === 'ben') {
+                    myScore++;
+                    ekrandaGoster(`KAZANDIN! 🎉<br><span style='font-size:20px'>Tebrikler ${myNick}!</span>`, "rgba(46, 204, 113, 0.9)");
+                } else {
+                    opponentScore++;
+                    ekrandaGoster(`KAYBETTİN! ❌<br><span style='font-size:20px'>${opponentNick} karakterini doğru bildi!</span>`, "rgba(231, 76, 60, 0.9)");
+                }
+                
+                skorTablosunuGuncelle();
+                if(isHost) {
+                    document.getElementById("btnYeniMac").style.display = "block";
+                }
+            } else {
+                // YANLIŞ BİLİNMİŞSE OYUN DEVAM EDER
+                if(tahminEden === 'ben') {
+                    ekrandaGoster(`YANLIŞ TAHMİN! ❌<br><span style='font-size:20px'>Oyun devam ediyor...</span>`, "rgba(231, 76, 60, 0.9)");
+                } else {
+                    ekrandaGoster(`RAKİP YANLIŞ BİLDİ! 🤣<br><span style='font-size:20px'>Oyun devam ediyor...</span>`, "rgba(46, 204, 113, 0.9)");
+                }
+            }
         }
 
         function kartTiklandi(kart) {
@@ -597,45 +707,35 @@
                 myPlayerId = kart.id;
                 gameState = "PLAYING";
                 
-                // Karşı tarafa kendi seçtiğimiz adamı gizlice bildiriyoruz
-                if(conn) {
-                    conn.send({ type: 'SELECTION', payload: myPlayerId });
-                }
+                if(conn) conn.send({ type: 'SELECTION', payload: myPlayerId });
                 
                 const status = document.getElementById("gameStatus");
                 status.style.color = "#f1c40f";
                 status.style.borderColor = "#f1c40f";
-                status.innerHTML = "OYUN BAŞLADI! 🎮<br><span style='font-size:14px;color:#bdc3c7;'>Rakibine sorular sor, elenenleri kapat.</span>";
+                status.innerHTML = "OYUN BAŞLADI! 🎮<br><span style='font-size:13px;color:#bdc3c7;'>Elenenleri kapat.</span>";
                 
-                // Tahmin butonunu görünür yap
                 document.getElementById("btnTahmin").style.display = "block";
                 return;
             }
 
             if(gameState === "PLAYING") {
-                // Eğer tahmin butonuna basılmışsa, eleme yerine tahmin mekanizması çalışır
                 if(isGuessMode) {
                     if(!opponentPlayerId) {
                         alert("Rakibin henüz karakterini seçmemiş, biraz bekle!");
-                        tahminModunuAcKapat(); // Modu kapat
+                        tahminModunuAcKapat(); 
                         return;
                     }
                     
-                    if(kart.id === opponentPlayerId) {
-                        sonucGoster("KAZANDIN! 🎉", "rgba(46, 204, 113, 0.85)"); // Şeffaf Yeşil
-                    } else {
-                        sonucGoster("YANLIŞ! ❌", "rgba(231, 76, 60, 0.85)"); // Şeffaf Kırmızı
-                    }
-                    
-                    tahminModunuAcKapat(); // Tıkladıktan sonra tahmin modunu sıfırla
+                    let isCorrect = (kart.id === opponentPlayerId);
+                    if(conn) conn.send({ type: 'GUESS_RESULT', payload: isCorrect });
+                    sonucIsle(isCorrect, 'ben');
+                    tahminModunuAcKapat(true); 
                     return;
                 }
 
-                // Tahmin modu açık değilse normal eleme işlemi yapar
                 kart.classList.toggle("eliminated");
             }
         }
     </script>
 </body>
 </html>
-                                    
