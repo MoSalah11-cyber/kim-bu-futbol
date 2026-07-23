@@ -11,16 +11,16 @@
         body {
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: #ecf0f1;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'VT323', monospace; /* GENEL FONT PİKSEL YAPILDI */
             text-align: center;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
+            font-size: 22px;
         }
         
         h1 {
-            font-family: 'VT323', monospace;
-            font-size: 60px;
+            font-size: 70px;
             color: #f1c40f;
             text-shadow: 4px 4px 0px rgba(0,0,0,0.8);
             margin-bottom: 5px;
@@ -28,15 +28,14 @@
             letter-spacing: 2px;
         }
         .main-title-sub {
-            font-family: 'VT323', monospace;
-            font-size: 40px;
+            font-size: 45px;
             display: block;
             color: #ecf0f1;
             letter-spacing: 5px;
         }
 
         .subtitle {
-            font-size: 14px;
+            font-size: 20px;
             color: #bdc3c7;
             margin-bottom: 30px;
             margin-top: 10px;
@@ -59,25 +58,25 @@
         input, select {
             width: 100%;
             padding: 12px;
-            font-size: 16px;
+            font-size: 22px;
+            font-family: 'VT323', monospace;
             border-radius: 8px;
             border: none;
             margin: 10px 0;
             background-color: #ecf0f1;
             color: #2c3e50;
-            font-weight: bold;
             text-align: center;
         }
         
         button {
             width: 100%;
             padding: 12px;
-            font-size: 16px;
+            font-size: 26px;
+            font-family: 'VT323', monospace;
             border-radius: 8px;
             border: none;
             background-color: #27ae60;
             color: white;
-            font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
             transition: 0.2s;
@@ -89,7 +88,7 @@
         button.btn-danger:hover { background-color: #e74c3c; }
 
         #roomCodeDisplay {
-            font-size: 32px;
+            font-size: 40px;
             color: #f1c40f;
             letter-spacing: 5px;
             margin: 20px 0;
@@ -115,19 +114,18 @@
         }
 
         #gameStatus {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 26px;
             color: #00ffcc;
             text-align: left;
             flex-grow: 1;
+            line-height: 1.2;
         }
 
         #scoreboard {
             background: #2c3e50;
             padding: 10px 20px;
             border-radius: 8px;
-            font-size: 22px;
-            font-weight: 900;
+            font-size: 32px;
             color: #ecf0f1;
             border: 2px solid #34495e;
             display: flex;
@@ -139,28 +137,27 @@
         #btnTahmin {
             background-color: #2ecc71;
             color: black;
-            font-weight: 900;
             padding: 10px 20px;
             width: auto;
             margin: 0;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
-            font-size: 18px;
+            font-size: 28px;
             display: none;
         }
         
         #btnYeniMac {
             background-color: #9b59b6;
             color: white;
-            font-weight: 900;
             padding: 10px 20px;
             width: auto;
             margin: 0;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 28px;
             display: none;
         }
 
+        /* 3D WALKOUT (KART AÇILIM) TASARIMI */
         .board {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -170,20 +167,58 @@
         }
         
         .card {
-            background-color: #2c3e50;
-            border: 2px solid #34495e;
+            background-color: transparent;
+            perspective: 1000px; /* 3D derinlik */
+            cursor: pointer;
+            aspect-ratio: 3/4;
+            position: relative;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            transform: rotateY(180deg); /* Başlangıçta arka yüzük dönük */
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(0deg); /* Animasyonla öne döner */
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
             border-radius: 10px;
             overflow: hidden;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            aspect-ratio: 3/4;
-            display: flex;
-            flex-direction: column;
+            border: 2px solid #34495e;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
-        
-        .card img {
+
+        .card-back {
+            background: repeating-linear-gradient(45deg, #1e3c72, #1e3c72 10px, #2a5298 10px, #2a5298 20px);
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-back::after {
+            content: "?";
+            font-size: 70px;
+            color: #f1c40f;
+            opacity: 0.7;
+            font-family: 'VT323', monospace;
+        }
+
+        .card-front {
+            background-color: #2c3e50;
+            transform: rotateY(0deg);
+        }
+
+        .card-front img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -202,23 +237,29 @@
             background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%);
             color: white;
             padding: 20px 5px 8px 5px;
-            font-size: 15px;
+            font-size: 14px; /* Standart font boyutu */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* İSİMLER STANDART FONT KALDI */
             font-weight: bold;
             text-transform: uppercase;
             z-index: 2;
             text-align: center;
         }
 
-        .card.my-player {
+        /* Kart Durumları */
+        .card.my-player .card-front {
             border: 4px solid #00ffcc;
             box-shadow: 0 0 20px #00ffcc;
-            transform: scale(1.02);
+        }
+        .card.my-player .card-inner {
+            transform: scale(1.03);
         }
         
-        .card.eliminated {
+        .card.eliminated .card-inner {
             opacity: 0.25;
             filter: grayscale(100%);
             transform: scale(0.95);
+        }
+        .card.eliminated .card-front {
             border-color: #c0392b;
         }
         .card.eliminated .name { text-decoration: line-through; color: #e74c3c; }
@@ -232,12 +273,12 @@
             z-index: 999;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 30px;
             flex-direction: column;
             backdrop-filter: blur(5px);
         }
         
-        #opponentGuessingOverlay { font-size: 30px; font-weight: bold; color: #f1c40f; text-shadow: 2px 2px 10px rgba(0,0,0,1); }
+        #opponentGuessingOverlay { font-size: 40px; color: #f1c40f; text-shadow: 2px 2px 10px rgba(0,0,0,1); }
 
         #resultOverlay {
             display: none;
@@ -247,8 +288,7 @@
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 50px;
-            font-weight: bold;
+            font-size: 65px;
             text-shadow: 4px 4px 15px rgba(0,0,0,0.9);
             pointer-events: none;
             backdrop-filter: blur(5px);
@@ -266,6 +306,7 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* SOHBET KUTUSU (Müdahale edilmedi, standart font) */
         #chat-container {
             margin: 20px auto 0 auto;
             max-width: 1200px;
@@ -275,6 +316,7 @@
             display: flex;
             flex-direction: column;
             height: 250px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Sohbet içi standart font */
         }
         #chat-messages {
             flex-grow: 1;
@@ -301,19 +343,27 @@
             padding: 10px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        #chat-input-area input { margin: 0; flex-grow: 1; text-align: left; }
-        #chat-input-area button { margin: 0; width: auto; padding: 0 20px; background-color: #f1c40f; color: #2c3e50; }
+        #chat-input-area input { 
+            margin: 0; flex-grow: 1; text-align: left; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-size: 14px; font-weight: normal; 
+        }
+        #chat-input-area button { 
+            margin: 0; width: auto; padding: 0 20px; background-color: #f1c40f; color: #2c3e50; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+        }
         #chat-input-area button:hover { background-color: #f39c12; }
 
         @media (max-width: 900px) { .board { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 600px) { 
-            h1 { font-size: 45px; } .main-title-sub { font-size: 30px; }
+            h1 { font-size: 55px; } .main-title-sub { font-size: 35px; }
             .board { grid-template-columns: repeat(3, 1fr); gap: 10px; } 
-            .card .name { font-size: 12px; padding: 15px 3px 5px 3px; }
-            #gameStatus { font-size: 14px; width: 100%; text-align: center; }
-            #scoreboard { font-size: 16px; width: 100%; justify-content: center; }
-            #btnTahmin, #btnYeniMac { font-size: 14px; padding: 8px 12px; flex-grow: 1; }
-            #resultOverlay { font-size: 35px; }
+            .card .name { font-size: 11px; padding: 15px 3px 5px 3px; }
+            #gameStatus { font-size: 20px; width: 100%; text-align: center; }
+            #scoreboard { font-size: 24px; width: 100%; justify-content: center; }
+            #btnTahmin, #btnYeniMac { font-size: 22px; padding: 8px 12px; flex-grow: 1; }
+            #resultOverlay { font-size: 45px; }
         }
         @media (max-width: 400px) { .board { grid-template-columns: repeat(2, 1fr); } }
     </style>
@@ -330,7 +380,7 @@
 
     <div id="opponentGuessingOverlay">
         <div class="spinner" style="border-top-color: #e74c3c;"></div>
-        Rakip Tahmin Yapıyor...<br><span style="font-size:16px; font-weight:normal; color:#bdc3c7; margin-top:10px; display:block;">Nefesler tutuldu!</span>
+        Rakip Tahmin Yapıyor...<br><span style="font-size:24px; color:#bdc3c7; margin-top:10px; display:block;">Nefesler tutuldu!</span>
     </div>
 
     <div id="resultOverlay">
@@ -340,8 +390,8 @@
     <div id="screen-main" class="screen active">
         <div class="menu-box">
             <h2>Oyun Modu Seç</h2>
-            <button onclick="showScreen('screen-host')">🏠 Yeni Oda Kur</button>
-            <button class="btn-secondary" onclick="showScreen('screen-join')">🤝 Kodla Odaya Katıl</button>
+            <button onclick="showScreen('screen-host')">YENİ ODA KUR</button>
+            <button class="btn-secondary" onclick="showScreen('screen-join')">KODLA ODAYA KATIL</button>
         </div>
     </div>
 
@@ -355,8 +405,8 @@
                 <option value="dunya_efsaneler">Dünya Efsaneler</option>
                 <option value="dunya_genel">Dünya Geneli</option> 
             </select>
-            <button onclick="odaOlustur()">Odayı Başlat</button>
-            <button class="btn-danger" onclick="showScreen('screen-main')">Geri Dön</button>
+            <button onclick="odaOlustur()">ODAYI BAŞLAT</button>
+            <button class="btn-danger" onclick="showScreen('screen-main')">GERİ DÖN</button>
         </div>
     </div>
 
@@ -365,8 +415,8 @@
             <h2>Odaya Katıl</h2>
             <input type="text" id="joinNick" placeholder="Nickini Gir (Örn: Kral)" maxlength="12">
             <input type="text" id="joinCode" placeholder="Oda Kodunu Gir (Örn: A7X9B)" maxlength="5" style="text-transform: uppercase;">
-            <button class="btn-secondary" onclick="odayaKatil()">Bağlan</button>
-            <button class="btn-danger" onclick="showScreen('screen-main')">Geri Dön</button>
+            <button class="btn-secondary" onclick="odayaKatil()">BAĞLAN</button>
+            <button class="btn-danger" onclick="showScreen('screen-main')">GERİ DÖN</button>
         </div>
     </div>
 
@@ -387,7 +437,7 @@
                 <span>-</span>
                 <span class="score-num" id="ui-oppScore">0</span> <span id="ui-oppNick">Rakip</span>
             </div>
-            <div id="gameStatus">SENİN OYUNCUN KİM? <br><span style="font-size:13px;color:#bdc3c7;">Önce kendi karakterini seç.</span></div>
+            <div id="gameStatus">SENİN OYUNCUN KİM? <br><span style="font-size:18px;color:#bdc3c7;">Önce kendi karakterini seç.</span></div>
             <button id="btnTahmin" onclick="tahminModunuAcKapat()">TAHMİN ET</button>
             <button id="btnYeniMac" onclick="yeniMacBaslat()">YENİ MAÇ</button>
         </div>
@@ -418,8 +468,9 @@
 
         let myPlayerId = null;
         let opponentPlayerId = null;
-        let gameState = "SELECT_PLAYER"; // SELECT_PLAYER, PLAYING, GAME_OVER
+        let gameState = "SELECT_PLAYER"; 
         let isGuessMode = false;
+        let isWalkoutFinished = false; // Walkout bitmeden tıklamayı önlemek için
         
         let currentCategory = "";
         let tumOyuncularCache = [];
@@ -615,21 +666,43 @@
             myPlayerId = null;
             opponentPlayerId = null;
             isGuessMode = false;
+            isWalkoutFinished = false;
             
             document.getElementById("btnTahmin").style.display = "none";
             document.getElementById("btnTahmin").style.backgroundColor = "#2ecc71";
             document.getElementById("btnTahmin").innerText = "TAHMİN ET";
             document.getElementById("btnYeniMac").style.display = "none";
-            document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:13px;color:#bdc3c7;'>Önce kendi karakterini seçerek belirle.</span>";
+            document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:18px;color:#bdc3c7;'>Kartların dönmesini bekle...</span>";
             
-            kadro.forEach(oyuncu => {
+            kadro.forEach((oyuncu, index) => {
                 const kart = document.createElement("div");
                 kart.className = "card";
                 kart.id = "kart-" + oyuncu.id;
-                kart.innerHTML = `<img src="${oyuncu.img}" alt="${oyuncu.isim}"><div class="name">${oyuncu.isim}</div>`;
+                
+                // 3D yapısı eklendi
+                kart.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <img src="${oyuncu.img}" alt="${oyuncu.isim}">
+                            <div class="name">${oyuncu.isim}</div>
+                        </div>
+                        <div class="card-back"></div>
+                    </div>
+                `;
                 kart.onclick = () => kartTiklandi(kart);
                 tahta.appendChild(kart);
+
+                // WALKOUT ANİMASYONU: Kartlar sırayla döner
+                setTimeout(() => {
+                    kart.classList.add("flipped");
+                }, 100 * index);
             });
+
+            // Tüm kartlar döndükten sonra seçime izin ver
+            setTimeout(() => {
+                isWalkoutFinished = true;
+                document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:18px;color:#bdc3c7;'>Önce kendi karakterini seçerek belirle.</span>";
+            }, (kadro.length * 100) + 600);
         }
 
         function yeniMacBaslat() {
@@ -674,17 +747,16 @@
 
         function sonucIsle(isCorrect, tahminEden) {
             if(isCorrect) {
-                // DOĞRU BİLİNMİŞSE OYUN BİTER
                 gameState = "GAME_OVER"; 
                 document.getElementById("btnTahmin").style.display = "none";
-                document.getElementById("gameStatus").innerHTML = "MAÇ BİTTİ! <br><span style='font-size:13px;color:#bdc3c7;'>Rövanş bekleniyor...</span>";
+                document.getElementById("gameStatus").innerHTML = "MAÇ BİTTİ! <br><span style='font-size:18px;color:#bdc3c7;'>Rövanş bekleniyor...</span>";
                 
                 if(tahminEden === 'ben') {
                     myScore++;
-                    ekrandaGoster(`KAZANDIN! 🎉<br><span style='font-size:20px'>Tebrikler ${myNick}!</span>`, "rgba(46, 204, 113, 0.9)");
+                    ekrandaGoster(`KAZANDIN!<br><span style='font-size:35px'>Tebrikler ${myNick}!</span>`, "rgba(46, 204, 113, 0.9)");
                 } else {
                     opponentScore++;
-                    ekrandaGoster(`KAYBETTİN! ❌<br><span style='font-size:20px'>${opponentNick} karakterini doğru bildi!</span>`, "rgba(231, 76, 60, 0.9)");
+                    ekrandaGoster(`KAYBETTİN!<br><span style='font-size:35px'>${opponentNick} karakterini doğru bildi!</span>`, "rgba(231, 76, 60, 0.9)");
                 }
                 
                 skorTablosunuGuncelle();
@@ -692,16 +764,17 @@
                     document.getElementById("btnYeniMac").style.display = "block";
                 }
             } else {
-                // YANLIŞ BİLİNMİŞSE OYUN DEVAM EDER
                 if(tahminEden === 'ben') {
-                    ekrandaGoster(`YANLIŞ TAHMİN! ❌<br><span style='font-size:20px'>Oyun devam ediyor...</span>`, "rgba(231, 76, 60, 0.9)");
+                    ekrandaGoster(`YANLIŞ TAHMİN!<br><span style='font-size:35px'>Oyun devam ediyor...</span>`, "rgba(231, 76, 60, 0.9)");
                 } else {
-                    ekrandaGoster(`RAKİP YANLIŞ BİLDİ! 🤣<br><span style='font-size:20px'>Oyun devam ediyor...</span>`, "rgba(46, 204, 113, 0.9)");
+                    ekrandaGoster(`RAKİP YANLIŞ BİLDİ!<br><span style='font-size:35px'>Oyun devam ediyor...</span>`, "rgba(46, 204, 113, 0.9)");
                 }
             }
         }
 
         function kartTiklandi(kart) {
+            if(!isWalkoutFinished) return; // Kartlar dönerken tıklamayı engeller
+
             if(gameState === "SELECT_PLAYER") {
                 kart.classList.add("my-player");
                 myPlayerId = kart.id;
@@ -712,7 +785,7 @@
                 const status = document.getElementById("gameStatus");
                 status.style.color = "#f1c40f";
                 status.style.borderColor = "#f1c40f";
-                status.innerHTML = "OYUN BAŞLADI! 🎮<br><span style='font-size:13px;color:#bdc3c7;'>Elenenleri kapat.</span>";
+                status.innerHTML = "OYUN BAŞLADI!<br><span style='font-size:18px;color:#bdc3c7;'>Elenenleri kapat.</span>";
                 
                 document.getElementById("btnTahmin").style.display = "block";
                 return;
