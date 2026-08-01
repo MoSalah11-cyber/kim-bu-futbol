@@ -542,6 +542,20 @@
             document.getElementById('ui-oppScore').innerText = opponentScore;
         }
 
+                // Yeni Güçlendirilmiş Ayarlar
+        const peerAyarlari = {
+            debug: 2,
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' }
+                ]
+            }
+        };
+
         async function odaOlustur() {
             let nickInput = document.getElementById("hostNick").value.trim();
             myNick = nickInput !== "" ? nickInput : "Oyuncu 1";
@@ -562,7 +576,11 @@
             const oynanacakKadro = diziyiKaristir(tumOyuncularCache).slice(0, 20);
             
             showLoading("Oda sunucusu açılıyor...");
-            peer = new Peer('kbfutbol-' + roomCode);
+            
+            // Eğer arkada asılı kalan eski bir bağlantı varsa önce onu öldürür
+            if(peer) { peer.destroy(); }
+            
+            peer = new Peer('kbfutbol-' + roomCode, peerAyarlari);
             
             peer.on('open', function(id) {
                 hideLoading();
@@ -583,7 +601,7 @@
 
             peer.on('error', function(err) {
                 hideLoading();
-                alert("Bağlantı hatası: " + err.type);
+                alert("Ana sunucu yanıt vermiyor. Sayfayı yenileyip tekrar deneyin.");
             });
         }
 
@@ -599,12 +617,24 @@
             }
 
             showLoading("Odaya bağlanıyor...");
-            peer = new Peer(); 
+            
+            if(peer) { peer.destroy(); }
+
+            // Süreyi 12 saniyeye çıkardık ki zorlu bağlantılarda sistem hemen pes etmesin
+            let connectionTimeout = setTimeout(() => {
+                hideLoading();
+                alert("Bağlantı kurulamadı. İnternet sağlayıcınız engelliyor olabilir, Wi-Fi ile deneyin.");
+                if(peer) peer.destroy();
+            }, 12000); 
+
+            peer = new Peer(peerAyarlari); 
             
             peer.on('open', function(id) {
-                conn = peer.connect('kbfutbol-' + code);
+                // reliable: true ekleyerek bağlantıyı kopmamaya zorluyoruz
+                conn = peer.connect('kbfutbol-' + code, { reliable: true });
                 
                 conn.on('open', function() {
+                    clearTimeout(connectionTimeout); 
                     hideLoading();
                     conn.send({ type: 'NICKNAME', payload: myNick });
                     skorTablosunuGuncelle();
@@ -614,10 +644,12 @@
             });
 
             peer.on('error', function(err) {
+                clearTimeout(connectionTimeout);
                 hideLoading();
-                alert("Oda bulunamadı veya bağlantı hatası!");
+                alert("Bağlantı koptu veya oda bulunamadı. Lütfen sayfayı yenileyip tekrar deneyin.");
             });
-            }
+        }
+
 
         function gelenVeriyiIsle(data) {
             if(data.type === 'KADRO') {
