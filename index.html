@@ -14,8 +14,8 @@
         * { box-sizing: border-box; }
         /* SARI - SİYAH ANA TEMA */
         body {
-            background-color: #111111; /* Koyu siyah arka plan */
-            color: #F7D917; /* MBT Sarı font rengi */
+            background-color: #111111; 
+            color: #F7D917; 
             font-family: 'VT323', monospace; 
             text-align: center;
             margin: 0;
@@ -196,7 +196,7 @@
         
         .card {
             background-color: transparent;
-            perspective: 1000px; /* 3D derinlik */
+            perspective: 1000px; 
             cursor: pointer;
             aspect-ratio: 3/4;
             position: relative;
@@ -208,11 +208,11 @@
             height: 100%;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
-            transform: rotateY(180deg); /* Başlangıçta arka yüzük dönük */
+            transform: rotateY(180deg); 
         }
 
         .card.flipped .card-inner {
-            transform: rotateY(0deg); /* Animasyonla öne döner */
+            transform: rotateY(0deg); 
         }
 
         .card-front, .card-back {
@@ -226,7 +226,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         }
 
-        /* YENİ KART ARKASI TASARIMI (LOGO GÖMÜLÜ) */
+        /* KART ARKASI (LOGO) - UZUN İSİM KORUNDU */
         .card-back {
             background-color: #000000;
             background-image: url('Paragraf metniniz_20261106_232606_0000.png');
@@ -485,9 +485,6 @@
     </div>
 
     <script>
-        const GITHUB_KULLANICI_ADIN = "mosalah11-cyber"; 
-        const GITHUB_REPO_ADIN = "kim-bu-futbol";
-        
         let peer = null;
         let conn = null;
         let isHost = false;
@@ -527,27 +524,33 @@
             return code;
         }
 
-        function ismiDuzenle(dosyaAdi) {
-            let isim = dosyaAdi.replace(/\.[^/.]+$/, ""); 
-            isim = isim.replace(/_/g, " "); 
-            return isim.replace(/\b\w/g, l => l.toUpperCase()); 
-        }
-
-        async function githubdanResimleriCek(klasor) {
-            const url = `https://api.github.com/repos/${GITHUB_KULLANICI_ADIN}/${GITHUB_REPO_ADIN}/contents/images/${klasor}`;
+        // --- YENİ JSON ÇEKME FONKSİYONU (OBJE MANTIĞINA UYGUN) ---
+        async function githubdanResimleriCek(kategori) {
             try {
-                const yanit = await fetch(url);
-                if (!yanit.ok) return [];
-                const veri = await yanit.json();
-                return veri
-                    .filter(dosya => dosya.name.match(/\.(jpg|jpeg|png|webp)$/i))
-                    .map(dosya => ({
-                        isim: ismiDuzenle(dosya.name),
-                        img: dosya.download_url,
-                        id: Math.random().toString(36).substr(2, 9)
-                    }));
+                const yanit = await fetch('futbolcular.json');
+                
+                if (!yanit.ok) {
+                    console.error("JSON dosyasi bulunamadi!");
+                    return [];
+                }
+                
+                const tumVeri = await yanit.json();
+
+                const kategoriOyunculari = tumVeri[kategori];
+
+                if (!kategoriOyunculari) {
+                     console.error(kategori + " kategorisi bulunamadı!");
+                     return [];
+                }
+
+                return kategoriOyunculari.map(oyuncu => ({
+                    isim: oyuncu.isim,
+                    img: oyuncu.foto, 
+                    id: oyuncu.id.toString() 
+                }));
+                
             } catch (hata) {
-                console.error("Resimler çekilemedi:", hata);
+                console.error("Veri çekilemedi, JSON dosyasını kontrol et:", hata);
                 return [];
             }
         }
@@ -594,7 +597,7 @@
             
             if (tumOyuncularCache.length === 0) {
                 hideLoading();
-                alert(`Hata: ${currentCategory} klasöründe resim bulunamadı!`);
+                alert(`Hata: ${currentCategory} için oyuncu bulunamadı! futbolcular.json dosyasını kontrol et.`);
                 return;
             }
 
@@ -672,7 +675,6 @@
             });
         }
 
-
         function gelenVeriyiIsle(data) {
             if(data.type === 'KADRO') {
                 tahtayiCiz(data.payload);
@@ -729,6 +731,7 @@
             
             document.getElementById("btnTahmin").style.display = "none";
             document.getElementById("btnTahmin").style.backgroundColor = "#F7D917";
+            document.getElementById("btnTahmin").style.color = "#000000";
             document.getElementById("btnTahmin").innerText = "TAHMİN ET";
             document.getElementById("btnYeniMac").style.display = "none";
             document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:18px;color:#aaaaaa;'>Kartların dönmesini bekle...</span>";
