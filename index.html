@@ -57,14 +57,13 @@
             box-shadow: 0 0 20px rgba(247, 217, 23, 0.2);
         }
 
-        .logo-top-right {
-            position: absolute;
-            top: 15px;
-            right: 15px;
+        /* Oyun İçi Ortalanmış Yeni Logo */
+        .logo-game-center {
+            display: block;
+            margin: 0 auto 15px auto;
             width: 80px;
             border-radius: 50%;
-            z-index: 100;
-            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            box-shadow: 0 0 10px rgba(247, 217, 23, 0.5);
         }
 
         .screen { display: none; }
@@ -226,7 +225,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         }
 
-        /* KART ARKASI (LOGO) - UZUN İSİM KORUNDU */
+        /* KART ARKASI (LOGO) */
         .card-back {
             background-color: #000000;
             background-image: url('Paragraf metniniz_20261106_232606_0000.png');
@@ -389,7 +388,6 @@
             #btnTahmin, #btnYeniMac { font-size: 22px; padding: 8px 12px; flex-grow: 1; }
             #resultOverlay { font-size: 45px; }
             .logo-center { width: 140px; }
-            .logo-top-right { width: 50px; top: 10px; right: 10px; }
         }
         @media (max-width: 400px) { .board { grid-template-columns: repeat(2, 1fr); } }
     </style>
@@ -460,7 +458,8 @@
 
     <!-- OYUN EKRANI -->
     <div id="screen-game" class="screen">
-        <img src="Paragraf metniniz_20261106_232606_0000.png" class="logo-top-right" alt="MBT Logo">
+        <!-- Logo merkeze alındı -->
+        <img src="Paragraf metniniz_20261106_232606_0000.png" class="logo-game-center" alt="MBT Logo">
         
         <div id="oyunUstBar">
             <div id="scoreboard">
@@ -469,7 +468,7 @@
                 <span class="score-num" id="ui-oppScore">0</span> <span id="ui-oppNick">Rakip</span>
             </div>
             <div id="gameStatus">SENİN OYUNCUN KİM? <br><span style="font-size:18px;color:#aaaaaa;">Önce kendi karakterini seç.</span></div>
-            <button id="btnTahmin" onclick="tahminModunuAcKapat()">TAHMİN ET</button>
+            <button id="btnTahmin" onclick="tahminModunuAcKapat()">TAHMİN ET (3)</button>
             <button id="btnYeniMac" onclick="yeniMacBaslat()">YENİ MAÇ</button>
         </div>
         
@@ -500,6 +499,7 @@
         let isGuessMode = false;
         let isWalkoutFinished = false; 
         
+        let kalanTahmin = 3; // Tahmin hakkı sayacı
         let currentCategory = "";
         let tumOyuncularCache = [];
 
@@ -524,7 +524,6 @@
             return code;
         }
 
-        // --- YENİ JSON ÇEKME FONKSİYONU (OBJE MANTIĞINA UYGUN) ---
         async function githubdanResimleriCek(kategori) {
             try {
                 const yanit = await fetch('futbolcular.json');
@@ -728,11 +727,12 @@
             opponentPlayerId = null;
             isGuessMode = false;
             isWalkoutFinished = false;
+            kalanTahmin = 3; // Yeni maçta tahmin sayacını sıfırlıyoruz
             
             document.getElementById("btnTahmin").style.display = "none";
             document.getElementById("btnTahmin").style.backgroundColor = "#F7D917";
             document.getElementById("btnTahmin").style.color = "#000000";
-            document.getElementById("btnTahmin").innerText = "TAHMİN ET";
+            document.getElementById("btnTahmin").innerText = `TAHMİN ET (${kalanTahmin})`;
             document.getElementById("btnYeniMac").style.display = "none";
             document.getElementById("gameStatus").innerHTML = "SENİN OYUNCUN KİM? <br><span style='font-size:18px;color:#aaaaaa;'>Kartların dönmesini bekle...</span>";
             
@@ -790,7 +790,7 @@
             } else {
                 btn.style.backgroundColor = "#F7D917"; 
                 btn.style.color = "#000000";
-                btn.innerText = "TAHMİN ET";
+                btn.innerText = `TAHMİN ET (${kalanTahmin})`;
                 if(!islemBitti && conn) conn.send({ type: 'GUESS_CANCEL' });
             }
         }
@@ -806,18 +806,31 @@
             }, 3000);
         }
 
-        function sonucIsle(isCorrect, tahminEden) {
-            if(isCorrect) {
+        function sonucIsle(data, tahminEden) {
+            // data formatı = { correct: true/false, gameOver: true/false, remaining: sayi }
+            if(data.gameOver) {
                 gameState = "GAME_OVER"; 
                 document.getElementById("btnTahmin").style.display = "none";
                 document.getElementById("gameStatus").innerHTML = "MAÇ BİTTİ! <br><span style='font-size:18px;color:#aaaaaa;'>Rövanş bekleniyor...</span>";
                 
-                if(tahminEden === 'ben') {
-                    myScore++;
-                    ekrandaGoster(`KAZANDIN!<br><span style='font-size:35px'>Tebrikler ${myNick}!</span>`, "rgba(247, 217, 23, 0.9)");
+                if(data.correct) {
+                    // Doğru bilerek maçı kazandı
+                    if(tahminEden === 'ben') {
+                        myScore++;
+                        ekrandaGoster(`KAZANDIN!<br><span style='font-size:35px'>Tebrikler ${myNick}!</span>`, "rgba(247, 217, 23, 0.9)");
+                    } else {
+                        opponentScore++;
+                        ekrandaGoster(`KAYBETTİN!<br><span style='font-size:35px'>${opponentNick} karakterini doğru bildi!</span>`, "rgba(231, 76, 60, 0.9)");
+                    }
                 } else {
-                    opponentScore++;
-                    ekrandaGoster(`KAYBETTİN!<br><span style='font-size:35px'>${opponentNick} karakterini doğru bildi!</span>`, "rgba(231, 76, 60, 0.9)");
+                    // Tahmin hakları biterek maçı kaybetti
+                    if(tahminEden === 'ben') {
+                        opponentScore++;
+                        ekrandaGoster(`KAYBETTİN!<br><span style='font-size:35px'>3 tahmin hakkın da bitti!</span>`, "rgba(231, 76, 60, 0.9)");
+                    } else {
+                        myScore++;
+                        ekrandaGoster(`KAZANDIN!<br><span style='font-size:35px'>Rakibin tüm tahmin haklarını tüketti!</span>`, "rgba(247, 217, 23, 0.9)");
+                    }
                 }
                 
                 skorTablosunuGuncelle();
@@ -825,8 +838,9 @@
                     document.getElementById("btnYeniMac").style.display = "block";
                 }
             } else {
+                // Maç bitmedi, sadece yanlış tahmin yaptı ve hakları devam ediyor
                 if(tahminEden === 'ben') {
-                    ekrandaGoster(`YANLIŞ TAHMİN!<br><span style='font-size:35px'>Oyun devam ediyor...</span>`, "rgba(231, 76, 60, 0.9)");
+                    ekrandaGoster(`YANLIŞ TAHMİN!<br><span style='font-size:35px'>Kalan hakkın: ${data.remaining}</span>`, "rgba(231, 76, 60, 0.9)");
                 } else {
                     ekrandaGoster(`RAKİP YANLIŞ BİLDİ!<br><span style='font-size:35px'>Oyun devam ediyor...</span>`, "rgba(247, 217, 23, 0.9)");
                 }
@@ -860,8 +874,21 @@
                     }
                     
                     let isCorrect = (kart.id === opponentPlayerId);
-                    if(conn) conn.send({ type: 'GUESS_RESULT', payload: isCorrect });
-                    sonucIsle(isCorrect, 'ben');
+                    let isGameOver = false;
+
+                    if(isCorrect) {
+                        isGameOver = true;
+                    } else {
+                        kalanTahmin--;
+                        if(kalanTahmin <= 0) {
+                            isGameOver = true;
+                        }
+                    }
+
+                    let payloadData = { correct: isCorrect, gameOver: isGameOver, remaining: kalanTahmin };
+
+                    if(conn) conn.send({ type: 'GUESS_RESULT', payload: payloadData });
+                    sonucIsle(payloadData, 'ben');
                     tahminModunuAcKapat(true); 
                     return;
                 }
