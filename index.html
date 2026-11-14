@@ -57,7 +57,6 @@
             box-shadow: 0 0 20px rgba(247, 217, 23, 0.2);
         }
 
-        /* Oyun İçi Ortalanmış Yeni Logo */
         .logo-game-center {
             display: block;
             margin: 0 auto 15px auto;
@@ -286,7 +285,7 @@
         }
         .card.eliminated .name { text-decoration: line-through; color: #aaaaaa; }
 
-        #loadingOverlay, #opponentGuessingOverlay {
+        #loadingOverlay, #opponentGuessingOverlay, #newMatchOverlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -301,6 +300,8 @@
         }
         
         #opponentGuessingOverlay { font-size: 40px; color: #F7D917; text-shadow: 2px 2px 10px rgba(0,0,0,1); }
+
+        #newMatchOverlay { z-index: 9999; }
 
         #resultOverlay {
             display: none;
@@ -408,6 +409,21 @@
         <div id="resultText">KAZANDIN!</div>
     </div>
 
+    <!-- YENİ MAÇ KATEGORİ SEÇİM EKRANI (Sadece Host İçin) -->
+    <div id="newMatchOverlay">
+        <div class="menu-box">
+            <h2 style="color: #F7D917; margin-top: 0;">Yeni Maç Kategorisi</h2>
+            <select id="yeniKategoriSec">
+                <option value="super_lig">Süper Lig</option>
+                <option value="turk_efsaneler">Türk Efsaneler</option>
+                <option value="dunya_efsaneler">Dünya Efsaneler</option>
+                <option value="dunya_genel">Dünya Geneli</option> 
+            </select>
+            <button onclick="yeniMacKadroCek()">MAÇI BAŞLAT</button>
+            <button class="btn-danger" onclick="document.getElementById('newMatchOverlay').style.display='none'">İPTAL</button>
+        </div>
+    </div>
+
     <!-- ANA MENÜ EKRANI -->
     <div id="screen-main" class="screen active">
         <img src="Paragraf metniniz_20261106_232606_0000.png" class="logo-center" alt="MBT Logo">
@@ -499,7 +515,7 @@
         let isGuessMode = false;
         let isWalkoutFinished = false; 
         
-        let kalanTahmin = 3; // Tahmin hakkı sayacı
+        let kalanTahmin = 3; 
         let currentCategory = "";
         let tumOyuncularCache = [];
 
@@ -727,7 +743,7 @@
             opponentPlayerId = null;
             isGuessMode = false;
             isWalkoutFinished = false;
-            kalanTahmin = 3; // Yeni maçta tahmin sayacını sıfırlıyoruz
+            kalanTahmin = 3; 
             
             document.getElementById("btnTahmin").style.display = "none";
             document.getElementById("btnTahmin").style.backgroundColor = "#F7D917";
@@ -766,7 +782,29 @@
 
         function yeniMacBaslat() {
             if(!isHost) return;
+            // Odayı kuran kişiye kategori seçme ekranını açar
+            document.getElementById('newMatchOverlay').style.display = 'flex';
+        }
+
+        async function yeniMacKadroCek() {
+            if(!isHost) return;
+            document.getElementById('newMatchOverlay').style.display = 'none';
+            
+            let yeniKat = document.getElementById("yeniKategoriSec").value;
+            currentCategory = yeniKat;
+            
+            showLoading("Yeni kadro çekiliyor...");
+            tumOyuncularCache = await githubdanResimleriCek(currentCategory);
+            
+            if (tumOyuncularCache.length === 0) {
+                hideLoading();
+                alert(`Hata: ${currentCategory} için oyuncu bulunamadı!`);
+                return;
+            }
+
             const yeniKadro = diziyiKaristir(tumOyuncularCache).slice(0, 20);
+            
+            hideLoading();
             conn.send({ type: 'KADRO', payload: yeniKadro });
             tahtayiCiz(yeniKadro);
         }
@@ -807,14 +845,12 @@
         }
 
         function sonucIsle(data, tahminEden) {
-            // data formatı = { correct: true/false, gameOver: true/false, remaining: sayi }
             if(data.gameOver) {
                 gameState = "GAME_OVER"; 
                 document.getElementById("btnTahmin").style.display = "none";
                 document.getElementById("gameStatus").innerHTML = "MAÇ BİTTİ! <br><span style='font-size:18px;color:#aaaaaa;'>Rövanş bekleniyor...</span>";
                 
                 if(data.correct) {
-                    // Doğru bilerek maçı kazandı
                     if(tahminEden === 'ben') {
                         myScore++;
                         ekrandaGoster(`KAZANDIN!<br><span style='font-size:35px'>Tebrikler ${myNick}!</span>`, "rgba(247, 217, 23, 0.9)");
@@ -823,7 +859,6 @@
                         ekrandaGoster(`KAYBETTİN!<br><span style='font-size:35px'>${opponentNick} karakterini doğru bildi!</span>`, "rgba(231, 76, 60, 0.9)");
                     }
                 } else {
-                    // Tahmin hakları biterek maçı kaybetti
                     if(tahminEden === 'ben') {
                         opponentScore++;
                         ekrandaGoster(`KAYBETTİN!<br><span style='font-size:35px'>3 tahmin hakkın da bitti!</span>`, "rgba(231, 76, 60, 0.9)");
@@ -838,7 +873,6 @@
                     document.getElementById("btnYeniMac").style.display = "block";
                 }
             } else {
-                // Maç bitmedi, sadece yanlış tahmin yaptı ve hakları devam ediyor
                 if(tahminEden === 'ben') {
                     ekrandaGoster(`YANLIŞ TAHMİN!<br><span style='font-size:35px'>Kalan hakkın: ${data.remaining}</span>`, "rgba(231, 76, 60, 0.9)");
                 } else {
